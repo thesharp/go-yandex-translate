@@ -11,6 +11,7 @@ const (
 	URL_ROOT       = "https://translate.yandex.net/api/v1.5/tr.json"
 	LANGS_PATH     = "getLangs"
 	TRANSLATE_PATH = "translate"
+	DETECT_PATH    = "detect"
 )
 
 type Translator struct {
@@ -81,4 +82,24 @@ func (response *Response) Result() string {
 
 func absUrl(route string) string {
 	return URL_ROOT + "/" + route
+}
+
+func (tr *Translator) Detect(text string) (*Response, error) {
+	builtParams := url.Values{"key": {tr.apiKey}, "text": {text}}
+	resp, err := http.PostForm(absUrl(DETECT_PATH), builtParams)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	var response Response
+	if err := json.NewDecoder(resp.Body).Decode(&response); err != nil {
+		return nil, err
+	}
+
+	if response.Code != 200 {
+		return nil, fmt.Errorf("Response code: %v", response.Code)
+	}
+
+	return &response, nil
 }

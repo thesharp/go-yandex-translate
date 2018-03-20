@@ -1,8 +1,9 @@
 package yandex_translate
 
 import (
-	. "github.com/smartystreets/goconvey/convey"
 	"testing"
+
+	. "github.com/smartystreets/goconvey/convey"
 )
 
 const API_KEY = "trnsl.1.1.20130906T224742Z.773de87520381874.34176f81082c2758819298377d038a2b94a0c8d0"
@@ -38,7 +39,7 @@ func TestTranslateAPI(t *testing.T) {
 		tr := New(API_KEY)
 
 		Convey("On success it returns translation of the word", func() {
-			response, err := tr.Translate("ru", "A lazy dog")
+			response, err := tr.Translate("ru", "dog")
 
 			So(err, ShouldBeNil)
 			So(response, ShouldNotBeNil)
@@ -48,7 +49,7 @@ func TestTranslateAPI(t *testing.T) {
 
 			So(response.Lang, ShouldEqual, "en-ru")
 			So(response.Detected["lang"], ShouldEqual, "en")
-			So(response.Text, ShouldContain, "Ленивая собака")
+			So(response.Text, ShouldContain, "собака")
 		})
 
 		Convey("On fail it returns an error with error code and message", func() {
@@ -60,10 +61,33 @@ func TestTranslateAPI(t *testing.T) {
 		})
 	})
 
+	Convey("#Detect", t, func() {
+		tr := New(API_KEY)
+
+		Convey("On success it returns detected language", func() {
+			response, err := tr.Detect("dog")
+
+			So(err, ShouldBeNil)
+			So(response, ShouldNotBeNil)
+
+			So(response.Code, ShouldEqual, 200)
+
+			So(response.Lang, ShouldEqual, "en")
+		})
+
+		Convey("On fail it returns an error with error code and message", func() {
+			response, err := tr.Detect("")
+
+			So(err, ShouldNotBeNil)
+			So(response, ShouldBeNil)
+			So(err.Error(), ShouldEqual, "Response code: 502")
+		})
+	})
+
 	Convey("#Result", t, func() {
 		tr := New(API_KEY)
-		response, _ := tr.Translate("ru", "A lazy dog")
-		So(response.Result(), ShouldEqual, "Ленивая собака")
+		response, _ := tr.Translate("ru", "dog")
+		So(response.Result(), ShouldEqual, "собака")
 	})
 
 }
